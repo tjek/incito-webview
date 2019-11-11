@@ -35,7 +35,7 @@
 
             incito.bind('allRendered', function () {
                 if (window.webkit != undefined && window.webkit.messageHandlers.incitoFinishedRendering != undefined) {
-                    window.webkit.messageHandlers.incitoFinishedRendering.postMessage(true)
+                    window.webkit.messageHandlers.incitoFinishedRendering.postMessage(document.body.scrollHeight)
                 }
             });
             
