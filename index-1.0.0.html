@@ -34,7 +34,9 @@
             });
 
             incito.bind('allRendered', function () {
-                window.webkit.messageHandlers.incitoFinishedRendering.postMessage(true);
+                if (window.webkit != undefined && window.webkit.messageHandlers.incitoFinishedRendering != undefined) {
+                    window.webkit.messageHandlers.incitoFinishedRendering.postMessage(true)
+                }
             });
             
             incito.start();
