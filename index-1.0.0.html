@@ -37,8 +37,25 @@
                 if (window.webkit != undefined && window.webkit.messageHandlers.incitoFinishedRendering != undefined) {
                     window.webkit.messageHandlers.incitoFinishedRendering.postMessage(document.body.scrollHeight)
                 }
+
+                if ('androidJSInterface' in window) {
+                    window.androidJSInterface.initDone();
+                }
             });
-            
+
+            if ('androidJSInterface' in window) {
+
+                document.addEventListener("click", function (e) {
+                    var id = findViewId(e.target);
+                    window.androidJSInterface.viewClicked(id);
+                }, false);
+
+                window.addEventListener('scroll', function () {
+                    var progress = (window.innerHeight + window.pageYOffset) / document.body.scrollHeight;
+                    window.androidJSInterface.progress(progress, window.pageYOffset);
+                });
+            }
+
             incito.start();
         };
 
@@ -99,6 +116,34 @@
             }
 
             return elements;
+        }
+
+        <!-- function called by android java code onLongClick -->
+        window.longClick = function (x, y) {
+            var obj = document.elementFromPoint(x, y);
+            var id = findViewId(obj);
+            if ('androidJSInterface' in window) {
+                window.androidJSInterface.longClick(id);
+            }
+        };
+
+        <!-- function called by android java code (observer on the incito view model for selected offer) -->
+        window.goToOffer = function (viewId) {
+            var all = document.getElementsByTagName("*");
+            for (var i=0, max=all.length; i < max; i++) {
+                 if (all[i].webkitMatchesSelector('.incito__view[data-role="offer"]') && all[i].getAttribute('data-id') === viewId) {
+                    all[i].scrollIntoView();
+                 }
+            }
+        }
+
+        <!-- internal function to retrieve the viewId for the android java code -->
+        function findViewId (obj) {
+            for (var target = obj; target && target != this; target = target.parentNode) {
+                if (target.webkitMatchesSelector('.incito__view[data-role="offer"]')) {
+                    return target.getAttribute('data-id');
+                }
+            }
         }
     </script>
 </body>
