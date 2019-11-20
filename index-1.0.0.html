@@ -66,9 +66,9 @@
 
         //- Returns array of (non-null) id strings for all the elements at the specified point
         function getElementIdsAtPoint(x, y) {
-            return [...document.elementsFromPoint(x, y)]
-                .map(el => el.getAttribute('data-id'))
-                .filter(el => el != null)
+            return document.elementsFromPoint(x, y)
+                .map(function (el) { el.getAttribute('data-id') })
+                .filter(function (el) { el != null })
         }
 
         // Private funcs
