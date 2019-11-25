@@ -64,11 +64,11 @@
             return absoluteBoundsOfElement(document.querySelector("[data-id='"+elId+"']"));
         }
 
-        //- Returns array of (non-null) id strings for all the elements at the specified point
+        // Returns array of (non-null) id strings for all the elements at the specified point
         function getElementIdsAtPoint(x, y) {
             return document.elementsFromPoint(x, y)
-                .map(function (el) { el.getAttribute('data-id') })
-                .filter(function (el) { el != null })
+                .map(function (el) { return el.getAttribute('data-id') })
+                .filter(function (el) { return el != null })
         }
 
         // Private funcs
