@@ -128,14 +128,16 @@
         };
 
         <!-- function called by android java code (observer on the incito view model for selected offer) -->
-        window.goToOffer = function (viewId) {
+        window.goToView = function (viewId) {
             var all = document.getElementsByTagName("*");
             for (var i=0, max=all.length; i < max; i++) {
-                 if (all[i].webkitMatchesSelector('.incito__view[data-role="offer"]') && all[i].getAttribute('data-id') === viewId) {
+                if (all[i].webkitMatchesSelector('.incito__view') && all[i].getAttribute('data-id') === viewId) {
                     all[i].scrollIntoView();
-                 }
+
+                    break;
+                }
             }
-        }
+        };
 
         <!-- internal function to retrieve the viewId for the android java code -->
         function findViewId (obj) {
