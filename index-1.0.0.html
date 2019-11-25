@@ -28,11 +28,15 @@
 <div id="container"></div>
 
 <script>
+        // Creates and renders the Incito html specified by the json data passed in.
+        // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
         window.init = function (data) {
             var incito = new Incito(document.getElementById('container'), {
                 incito: data
             });
 
+            // listen for the allRendered event from the incito, called when all the elements are placed on screen.
+            // Forward this event on to iOS and Android listeners.
             incito.bind('allRendered', function () {
                 if (window.webkit != undefined && window.webkit.messageHandlers.incitoFinishedRendering != undefined) {
                     window.webkit.messageHandlers.incitoFinishedRendering.postMessage(document.body.scrollHeight)
@@ -44,34 +48,69 @@
             });
 
             if ('androidJSInterface' in window) {
-
+                // Listen for click events, and forward the id of the offer to Android listeners.
                 document.addEventListener("click", function (e) {
-                    var id = findViewId(e.target);
+                    var id = viewIdOfFirstParentOffer(e.target);
                     window.androidJSInterface.viewClicked(id);
                 }, false);
 
+                // Listen for scroll events, and forward the progress to Android listeners.
                 window.addEventListener('scroll', function () {
                     var progress = (window.innerHeight + window.pageYOffset) / document.body.scrollHeight;
                     window.androidJSInterface.progress(progress, window.pageYOffset);
                 });
             }
 
+            // start rendering the incito
             incito.start();
         };
 
         // Function allowing access to the absolute bounds of an element defined by the element Id
+        // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
         function absoluteBoundsOfElementWithId(elId) {
-            return absoluteBoundsOfElement(document.querySelector("[data-id='"+elId+"']"));
+            var element = incitoViewElementWithId(elId);
+            if (element != null) {
+                return absoluteBoundsOfElement(element);
+            }
         }
 
         // Returns array of (non-null) id strings for all the elements at the specified point
+        // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
         function getElementIdsAtPoint(x, y) {
             return document.elementsFromPoint(x, y)
                 .map(function (el) { return el.getAttribute('data-id') })
                 .filter(function (el) { return el != null })
         }
 
-        // Private funcs
+        // function called by android java code (observer on the incito view model for selected offer)
+        // scroll to the element with the specified viewId
+        // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
+        window.goToView = function (viewId) {
+            var element = incitoViewElementWithId(viewId);
+            if (element != null) {
+                element.scrollIntoView();
+            }
+        };
+
+        // function called by android java code onLongClick
+        // forwards the id of the offer to Android listeners.
+        // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
+        window.longClick = function (x, y) {
+            var obj = document.elementFromPoint(x, y);
+            var id = viewIdOfFirstParentOffer(obj);
+            if ('androidJSInterface' in window) {
+                window.androidJSInterface.longClick(id);
+            }
+        };
+
+        //////// Private funcs ////////
+        
+        // internal function to retrieve the first incito__view element with the specified viewId.
+        function incitoViewElementWithId(viewId) {
+            return document.querySelector(".incito__view[data-id='"+viewId+"']");
+        }
+        
+        // internal function to retrieve the absolute bounds (ignoring scroll offset etc) of the specified element.
         function absoluteBoundsOfElement(element) {
             var bounds = element.getBoundingClientRect();
 
@@ -90,7 +129,17 @@
             };
         }
 
-        // Polyfill for `elementsFromPoint` for older versions of ios Safari
+        // internal function to retrieve the viewId of the first 'offer' parent of an element.
+        // Called from JS code triggered by the android java code.
+        function viewIdOfFirstParentOffer(element) {
+            for (var target = element; target && target != this; target = target.parentNode) {
+                if (target.webkitMatchesSelector('.incito__view[data-role="offer"]')) {
+                    return target.getAttribute('data-id');
+                }
+            }
+        }
+
+        // Polyfill for `elementsFromPoint` for older versions of ios Safari.
         if (typeof document !== 'undefined' && typeof document.elementsFromPoint === 'undefined') {
             document.elementsFromPoint = elementsFromPointPolyfill;
         }
@@ -118,35 +167,6 @@
             return elements;
         }
 
-        <!-- function called by android java code onLongClick -->
-        window.longClick = function (x, y) {
-            var obj = document.elementFromPoint(x, y);
-            var id = findViewId(obj);
-            if ('androidJSInterface' in window) {
-                window.androidJSInterface.longClick(id);
-            }
-        };
-
-        <!-- function called by android java code (observer on the incito view model for selected offer) -->
-        window.goToView = function (viewId) {
-            var all = document.getElementsByTagName("*");
-            for (var i=0, max=all.length; i < max; i++) {
-                if (all[i].webkitMatchesSelector('.incito__view') && all[i].getAttribute('data-id') === viewId) {
-                    all[i].scrollIntoView();
-
-                    break;
-                }
-            }
-        };
-
-        <!-- internal function to retrieve the viewId for the android java code -->
-        function findViewId (obj) {
-            for (var target = obj; target && target != this; target = target.parentNode) {
-                if (target.webkitMatchesSelector('.incito__view[data-role="offer"]')) {
-                    return target.getAttribute('data-id');
-                }
-            }
-        }
     </script>
 </body>
 </html>
