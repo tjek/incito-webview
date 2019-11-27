@@ -50,9 +50,8 @@
             if ('androidJSInterface' in window) {
                 // Listen for click events, and forward the id of the offer to Android listeners.
                 document.addEventListener("click", function (e) {
-                    var id = viewIdOfFirstParentOffer(e.target);
-                    window.androidJSInterface.viewClicked(id);
-                }, false);
+                        window.androidJSInterface.viewClicked(getElementIdsAtPoint(e.clientX, e.clientY));
+                    }, false);
 
                 // Listen for scroll events, and forward the progress to Android listeners.
                 window.addEventListener('scroll', function () {
@@ -82,24 +81,12 @@
                 .filter(function (el) { return el != null })
         }
 
-        // function called by android java code (observer on the incito view model for selected offer)
-        // scroll to the element with the specified viewId
+        // function called by android java code to scroll to the element with the specified viewId
         // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
         window.goToView = function (viewId) {
             var element = incitoViewElementWithId(viewId);
             if (element != null) {
                 element.scrollIntoView();
-            }
-        };
-
-        // function called by android java code onLongClick
-        // forwards the id of the offer to Android listeners.
-        // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
-        window.longClick = function (x, y) {
-            var obj = document.elementFromPoint(x, y);
-            var id = viewIdOfFirstParentOffer(obj);
-            if ('androidJSInterface' in window) {
-                window.androidJSInterface.longClick(id);
             }
         };
 
@@ -127,16 +114,6 @@
                 width: bounds.width,
                 height: bounds.height
             };
-        }
-
-        // internal function to retrieve the viewId of the first 'offer' parent of an element.
-        // Called from JS code triggered by the android java code.
-        function viewIdOfFirstParentOffer(element) {
-            for (var target = element; target && target != this; target = target.parentNode) {
-                if (target.webkitMatchesSelector('.incito__view[data-role="offer"]')) {
-                    return target.getAttribute('data-id');
-                }
-            }
         }
 
         // Polyfill for `elementsFromPoint` for older versions of ios Safari.
