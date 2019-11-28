@@ -28,33 +28,76 @@
 <div id="container"></div>
 
 <script>
+        // Creates and renders the Incito html specified by the json data passed in.
+        // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
         window.init = function (data) {
             var incito = new Incito(document.getElementById('container'), {
                 incito: data
             });
 
+            // listen for the allRendered event from the incito, called when all the elements are placed on screen.
+            // Forward this event on to iOS and Android listeners.
             incito.bind('allRendered', function () {
                 if (window.webkit != undefined && window.webkit.messageHandlers.incitoFinishedRendering != undefined) {
                     window.webkit.messageHandlers.incitoFinishedRendering.postMessage(document.body.scrollHeight)
                 }
+
+                if ('androidJSInterface' in window) {
+                    window.androidJSInterface.initDone();
+                }
             });
-            
+
+            if ('androidJSInterface' in window) {
+                // Listen for click events, and forward the id of the offer to Android listeners.
+                document.addEventListener("click", function (e) {
+                        window.androidJSInterface.viewClicked(getElementIdsAtPoint(e.clientX, e.clientY));
+                    }, false);
+
+                // Listen for scroll events, and forward the progress to Android listeners.
+                window.addEventListener('scroll', function () {
+                    var progress = (window.innerHeight + window.pageYOffset) / document.body.scrollHeight;
+                    window.androidJSInterface.progress(progress, window.pageYOffset);
+                });
+            }
+
+            // start rendering the incito
             incito.start();
         };
 
         // Function allowing access to the absolute bounds of an element defined by the element Id
+        // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
         function absoluteBoundsOfElementWithId(elId) {
-            return absoluteBoundsOfElement(document.querySelector("[data-id='"+elId+"']"));
+            var element = incitoViewElementWithId(elId);
+            if (element != null) {
+                return absoluteBoundsOfElement(element);
+            }
         }
 
-        //- Returns array of (non-null) id strings for all the elements at the specified point
+        // Returns array of (non-null) id strings for all the elements at the specified point
+        // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
         function getElementIdsAtPoint(x, y) {
-            return [...document.elementsFromPoint(x, y)]
-                .map(el => el.getAttribute('data-id'))
-                .filter(el => el != null)
+            return document.elementsFromPoint(x, y)
+                .map(function (el) { return el.getAttribute('data-id') })
+                .filter(function (el) { return el != null })
         }
 
-        // Private funcs
+        // function called by android java code to scroll to the element with the specified viewId
+        // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
+        window.goToView = function (viewId) {
+            var element = incitoViewElementWithId(viewId);
+            if (element != null) {
+                element.scrollIntoView();
+            }
+        };
+
+        //////// Private funcs ////////
+        
+        // internal function to retrieve the first incito__view element with the specified viewId.
+        function incitoViewElementWithId(viewId) {
+            return document.querySelector(".incito__view[data-id='"+viewId+"']");
+        }
+        
+        // internal function to retrieve the absolute bounds (ignoring scroll offset etc) of the specified element.
         function absoluteBoundsOfElement(element) {
             var bounds = element.getBoundingClientRect();
 
@@ -73,7 +116,7 @@
             };
         }
 
-        // Polyfill for `elementsFromPoint` for older versions of ios Safari
+        // Polyfill for `elementsFromPoint` for older versions of ios Safari.
         if (typeof document !== 'undefined' && typeof document.elementsFromPoint === 'undefined') {
             document.elementsFromPoint = elementsFromPointPolyfill;
         }
@@ -100,6 +143,7 @@
 
             return elements;
         }
+
     </script>
 </body>
 </html>
