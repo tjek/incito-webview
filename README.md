@@ -8,7 +8,51 @@ If there are any breaking changes to this file, a duplicate of the document must
 
 ## Android Implementation
 
-Currently hosted at [https://github.com/shopgun/incito-android]() - this eventually needs to be mergerd into this file, once the Android client supports this repo.
+JavaScript interface to receive events and data from javascript
+```
+public class JavaScriptInterface {
+    private Activity activity;
+
+    public JavaScriptInterface(Activity activity) {
+        this.activity = activity;
+    }
+
+    // Called on click event from JS. 
+    // viewIds is an array with all the ids of the view found at the clicked point.
+    @JavascriptInterface
+    public void viewClicked(String[] viewIds) { }
+
+    // Called on scroll event from JS.
+    // progress * 100 will give you the percentage of scrolling (useful for a ProgressBar)
+    // scrollOffset is the window.pageYOffset
+    @JavascriptInterface
+    public void progress(float progress, float scrollOffset) { }
+    
+    // Called when the rendering is done, so you can dismiss whatever loading view you have
+    @JavascriptInterface
+    public void initDone() { }
+}
+```
+
+WebView setup
+```
+WebSettings webSettings = incitoWebView.getSettings();
+
+// Enable Javascript
+webSettings.setJavaScriptEnabled(true);
+JavaScriptInterface jsInterface = new JavaScriptInterface(this);
+webView.addJavascriptInterface(jsInterface, "androidJSInterface");
+
+webView.setWebViewClient(new WebViewClient(){
+    public void onPageFinished(WebView view, String url){
+        // Initialize the html doc with the incito JSON string
+        incitoWebView.evaluateJavascript("javascript:init(" + incitoJSONString + ")", null);
+    }
+});
+
+// Load the content of the html doc from your asset folder or from an url
+webView.loadUrl(htmlStr);
+```
 
 ## Swift Implementation
 
