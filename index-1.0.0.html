@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Incito</title>
     <style type="text/css">
         /* Disable webview copy & force-press */
@@ -46,6 +45,7 @@
                 // Listen for scroll events, and forward the progress to Android listeners.
                 window.addEventListener('scroll', function () {
                     var progress = (window.innerHeight + window.pageYOffset) / document.body.scrollHeight;
+                    
                     window.androidJSInterface.progress(progress, window.pageYOffset);
                 });
             }
@@ -58,7 +58,7 @@
                 if ('androidJSInterface' in window) {
                     window.androidJSInterface.initDone();
                 }
-            }, 0);
+            }, 10);
         };
 
         // Function allowing access to the absolute bounds of an element defined by the element Id
