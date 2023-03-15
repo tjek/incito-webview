@@ -40,6 +40,20 @@
   </head>
   <body>
     <script>
+      function emit(handler) {
+        var parameters = Array.prototype.slice.call(arguments, 1);
+
+        var iosHandler =
+          window.webkit &&
+          window.webkit.messageHandlers &&
+          window.webkit.messageHandlers[handler];
+        if (iosHandler) iosHandler.apply(null, parameters);
+
+        var androidHandler =
+          window.androidJSInterface && window.androidJSInterface[handler];
+        if (androidHandler) androidHandler.postMessage.apply(null, parameters);
+      }
+
       // Creates and renders the Incito html specified by the json data passed in.
       // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
       window.init = function (data) {
@@ -54,39 +68,51 @@
           }, 0);
 
           setTimeout(function () {
-            if (
-              window.webkit != undefined &&
-              window.webkit.messageHandlers.incitoFinishedRendering != undefined
-            ) {
-              window.webkit.messageHandlers.incitoFinishedRendering.postMessage(
-                document.body.scrollHeight
-              );
-            } else if ("androidJSInterface" in window) {
-              // Listen for click events, and forward the id of the offer to Android listeners.
-              document.addEventListener(
-                "click",
-                function (e) {
-                  window.androidJSInterface.viewClicked(
-                    getElementIdsAtPoint(e.clientX, e.clientY)
-                  );
-                },
-                false
-              );
+            emit("incitoFinishedRendering", document.body.scrollHeight);
 
-              // Listen for scroll events, and forward the progress to Android listeners.
-              window.addEventListener("scroll", function () {
-                var progress =
-                  (window.innerHeight + window.pageYOffset) /
-                  document.body.scrollHeight;
+            document.addEventListener(
+              "click",
+              function (e) {
+                emit("viewClicked", getElementIdsAtPoint(e.clientX, e.clientY));
 
-                window.androidJSInterface.progress(
-                  progress,
-                  window.pageYOffset
+                var offerEl = e.closest(
+                  ".incito__view[data-role='offer'][data-id]"
                 );
-              });
+                if (offerEl) {
+                  emit("offerViewClicked", { id: offerEl.dataset.id });
+                }
+              },
+              false
+            );
 
-              window.androidJSInterface.initDone();
-            }
+            document.addEventListener(
+              "contextmenu",
+              function (e) {
+                emit(
+                  "viewLongClicked",
+                  getElementIdsAtPoint(e.clientX, e.clientY)
+                );
+
+                var offerEl = e.target.closest(
+                  ".incito__view[data-role='offer'][data-id]"
+                );
+                if (offerEl) {
+                  emit("offerViewLongClicked", { id: offerEl.dataset.viewId });
+                }
+              },
+              false
+            );
+
+            // Listen for scroll events, and forward the progress to Android listeners.
+            window.addEventListener("scroll", function () {
+              var progress =
+                (window.innerHeight + window.pageYOffset) /
+                document.body.scrollHeight;
+
+              emit("progress", progress, window.pageYOffset);
+            });
+
+            emit("initDone");
           }, 200);
         }, 20);
       };
