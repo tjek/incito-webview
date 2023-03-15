@@ -64,6 +64,14 @@
           );
 
           setTimeout(function () {
+            // sectionData = {sectionId: string; sectionPosition: number}
+            incito.bind("sectionVisible", function (sectionData) {
+              emit("incitoSectionVisible", sectionData);
+            });
+            incito.bind("sectionHidden", function (sectionData) {
+              emit("incitoSectionHidden", sectionData);
+            });
+
             incito.start();
           }, 0);
 
