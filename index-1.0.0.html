@@ -54,6 +54,20 @@
         if (androidHandler) androidHandler.apply(null, parameters);
       }
 
+      /*
+      Manifest of handler calls and their arguments:
+
+      - incitoSectionVisible({ sectionId: string; sectionPosition: number })
+      - incitoSectionHidden({ sectionId: string; sectionPosition: number })
+      - incitoFinishedRendering(documentHeight: number)
+      - viewClicked(ids: string[])
+      - viewLongClicked(ids: string[])
+      - offerViewClicked({ id: string })
+      - offerViewLongClicked({ id: string })
+      - progress(progress: number, scrollY: number)
+      - init()
+      */
+
       // Creates and renders the Incito html specified by the json data passed in.
       // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
       window.init = function (data) {
@@ -64,7 +78,6 @@
           );
 
           setTimeout(function () {
-            // sectionData = {sectionId: string; sectionPosition: number}
             incito.bind("sectionVisible", function (sectionData) {
               emit("incitoSectionVisible", sectionData);
             });
