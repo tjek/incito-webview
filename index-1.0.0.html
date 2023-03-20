@@ -84,6 +84,9 @@
             incito.bind("sectionHidden", function (sectionData) {
               emit("incitoSectionHidden", sectionData);
             });
+            incito.bind("incitoEmbedLoaded", function (sectionData) {
+              emit("incitoEmbedLoaded", sectionData);
+            });
 
             incito.start();
           }, 0);
