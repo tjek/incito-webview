@@ -47,7 +47,7 @@
           window.webkit &&
           window.webkit.messageHandlers &&
           window.webkit.messageHandlers[handler];
-        if (iosHandler) iosHandler.postMessage.apply(null, parameters);
+        if (iosHandler) iosHandler.postMessage(parameters)
 
         var androidHandler =
           window.androidJSInterface && window.androidJSInterface[handler];
