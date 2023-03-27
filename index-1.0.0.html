@@ -40,19 +40,21 @@
   </head>
   <body>
     <script>
-      function emit(handler) {
-        var parameters = Array.prototype.slice.call(arguments, 1);
-
-        var iosHandler =
+      function emit(handler, payload, payload2) {
+        var hasIosHandler = Boolean(
           window.webkit &&
-          window.webkit.messageHandlers &&
-          window.webkit.messageHandlers[handler];
-        if (iosHandler) iosHandler.postMessage(parameters);
+            window.webkit.messageHandlers &&
+            window.webkit.messageHandlers[handler]
+        );
+        if (hasIosHandler) {
+          window.webkit.messageHandlers[handler].postMessage(payload, payload2);
+        }
 
-        var androidHandler =
-          window.androidJSInterface && window.androidJSInterface[handler];
-        if (androidHandler)
-          androidHandler.apply(window.androidJSInterface, parameters);
+        var hasAndroidHandler = Boolean(
+          window.androidJSInterface && window.androidJSInterface[handler]
+        );
+        if (hasAndroidHandler)
+          window.androidJSInterface[handler](payload, payload2);
       }
 
       /*
