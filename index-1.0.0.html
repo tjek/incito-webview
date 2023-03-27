@@ -51,7 +51,8 @@
 
         var androidHandler =
           window.androidJSInterface && window.androidJSInterface[handler];
-        if (androidHandler) androidHandler.apply(null, parameters);
+        if (androidHandler)
+          androidHandler.apply(window.androidJSInterface, parameters);
       }
 
       /*
