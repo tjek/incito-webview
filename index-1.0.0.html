@@ -60,13 +60,13 @@
       /*
       Manifest of handler calls and their arguments:
 
-      - incitoSectionVisible({ sectionId: string; sectionPosition: number })
-      - incitoSectionHidden({ sectionId: string; sectionPosition: number })
+      - incitoSectionVisible(sectionId: string; sectionPosition: number)
+      - incitoSectionHidden(sectionId: string; sectionPosition: number)
       - incitoFinishedRendering(documentHeight: number)
       - viewClicked(ids: string[])
       - viewLongClicked(ids: string[])
-      - offerViewClicked({ id: string })
-      - offerViewLongClicked({ id: string })
+      - offerViewClicked(id: string)
+      - offerViewLongClicked(id: string)
       - progress(progress: number, scrollY: number)
       - init()
       */
@@ -82,13 +82,18 @@
 
           setTimeout(function () {
             incito.bind("sectionVisible", function (sectionData) {
-              emit("incitoSectionVisible", sectionData);
+              emit(
+                "incitoSectionVisible",
+                sectionData.sectionId,
+                sectionData.sectionPosition
+              );
             });
             incito.bind("sectionHidden", function (sectionData) {
-              emit("incitoSectionHidden", sectionData);
-            });
-            incito.bind("incitoEmbedLoaded", function (sectionData) {
-              emit("incitoEmbedLoaded", sectionData);
+              emit(
+                "incitoSectionHidden",
+                sectionData.sectionId,
+                sectionData.sectionPosition
+              );
             });
 
             incito.start();
@@ -106,7 +111,7 @@
                   ".incito__view[data-role='offer'][data-id]"
                 );
                 if (offerEl) {
-                  emit("offerViewClicked", { id: offerEl.dataset.id });
+                  emit("offerViewClicked", offerEl.dataset.id);
                 }
               },
               false
@@ -124,7 +129,7 @@
                   ".incito__view[data-role='offer'][data-id]"
                 );
                 if (offerEl) {
-                  emit("offerViewLongClicked", { id: offerEl.dataset.viewId });
+                  emit("offerViewLongClicked", offerEl.dataset.viewId);
                 }
               },
               false
