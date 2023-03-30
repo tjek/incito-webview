@@ -57,8 +57,15 @@
         var hasAndroidHandler = Boolean(
           window.androidJSInterface && window.androidJSInterface[handler]
         );
-        if (hasAndroidHandler)
-          window.androidJSInterface[handler](payload, payload2);
+        if (hasAndroidHandler) {
+            if (payload !== undefined && payload2 !== undefined) {
+                window.androidJSInterface[handler](payload, payload2);
+            } else if (payload !== undefined) {
+                window.androidJSInterface[handler](payload);
+            } else {
+                window.androidJSInterface[handler]();
+            }
+        }
       }
 
       /*
