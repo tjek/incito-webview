@@ -40,6 +40,50 @@
   </head>
   <body>
     <script>
+      function emit(handler, payload, payload2) {
+        var hasIosHandler = Boolean(
+          window.webkit &&
+            window.webkit.messageHandlers &&
+            window.webkit.messageHandlers[handler]
+        );
+        if (hasIosHandler) {
+           if (payload !== undefined && payload2 !== undefined) {
+               window.webkit.messageHandlers[handler].postMessage([payload, payload2]);
+           } else {
+               window.webkit.messageHandlers[handler].postMessage(payload);
+           }
+        }
+
+        var hasAndroidHandler = Boolean(
+          window.androidJSInterface && window.androidJSInterface[handler]
+        );
+        if (hasAndroidHandler) {
+            if (payload !== undefined && payload2 !== undefined) {
+                window.androidJSInterface[handler](payload, payload2);
+            } else if (payload !== undefined) {
+                window.androidJSInterface[handler](payload);
+            } else {
+                window.androidJSInterface[handler]();
+            }
+        }
+      }
+
+      /*
+      Manifest of handler calls and their arguments:
+
+      - incitoSectionVisible(sectionId: string; sectionPosition: number)
+      - incitoSectionHidden(sectionId: string; sectionPosition: number)
+      - incitoFinishedRendering(documentHeight: number)
+      - viewClicked(ids: string[])
+      - viewLongClicked(ids: string[])
+      - offerViewClicked(id: string)
+      - offerViewLongClicked(id: string)
+      - progress(progress: number, scrollY: number)
+      - initDone()
+       
+       Note, on iOS multiple parameters are sent in an array (as iOS callback handlers only support a single param, and android callback handlers dont support dictionaries/maps). The order of the values in this array _always_ matches the order described in this manifest.
+      */
+
       // Creates and renders the Incito html specified by the json data passed in.
       // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
       window.init = function (data) {
@@ -50,43 +94,70 @@
           );
 
           setTimeout(function () {
+            incito.bind("sectionVisible", function (sectionData) {
+              emit(
+                "incitoSectionVisible",
+                sectionData.sectionId,
+                sectionData.sectionPosition
+              );
+            });
+            incito.bind("sectionHidden", function (sectionData) {
+              emit(
+                "incitoSectionHidden",
+                sectionData.sectionId,
+                sectionData.sectionPosition
+              );
+            });
+
             incito.start();
           }, 0);
 
           setTimeout(function () {
-            if (
-              window.webkit != undefined &&
-              window.webkit.messageHandlers.incitoFinishedRendering != undefined
-            ) {
-              window.webkit.messageHandlers.incitoFinishedRendering.postMessage(
-                document.body.scrollHeight
-              );
-            } else if ("androidJSInterface" in window) {
-              // Listen for click events, and forward the id of the offer to Android listeners.
-              document.addEventListener(
-                "click",
-                function (e) {
-                  window.androidJSInterface.viewClicked(
-                    getElementIdsAtPoint(e.clientX, e.clientY)
-                  );
-                },
-                false
-              );
+            emit("incitoFinishedRendering", document.body.scrollHeight);
 
-              // Listen for scroll events, and forward the progress to Android listeners.
-              window.addEventListener("scroll", function () {
-                var progress =
-                  (window.innerHeight + window.pageYOffset) /
-                  document.body.scrollHeight;
+            document.addEventListener(
+              "click",
+              function (e) {
+                emit("viewClicked", getElementIdsAtPoint(e.clientX, e.clientY));
 
-                window.androidJSInterface.progress(
-                  progress,
-                  window.pageYOffset
+                var offerEl = e.closest(
+                  ".incito__view[data-role='offer'][data-id]"
                 );
-              });
+                if (offerEl) {
+                  emit("offerViewClicked", offerEl.dataset.id);
+                }
+              },
+              false
+            );
 
-              window.androidJSInterface.initDone();
-            }
+            document.addEventListener(
+              "contextmenu",
+              function (e) {
+                emit(
+                  "viewLongClicked",
+                  getElementIdsAtPoint(e.clientX, e.clientY)
+                );
+
+                var offerEl = e.target.closest(
+                  ".incito__view[data-role='offer'][data-id]"
+                );
+                if (offerEl) {
+                  emit("offerViewLongClicked", offerEl.dataset.viewId);
+                }
+              },
+              false
+            );
+
+            // Listen for scroll events, and forward the progress to Android listeners.
+            window.addEventListener("scroll", function () {
+              var progress =
+                (window.innerHeight + window.pageYOffset) /
+                document.body.scrollHeight;
+
+              emit("progress", progress, window.pageYOffset);
+            });
+
+            emit("initDone");
           }, 200);
         }, 20);
       };
@@ -181,6 +252,28 @@
 
           return elements;
         };
+      }
+
+      // Polyfill for `Element#closest` for older versions of android chrome.
+      if (typeof Element !== "undefined") {
+        if (!Element.prototype.matches) {
+          Element.prototype.matches =
+            Element.prototype.msMatchesSelector ||
+            Element.prototype.webkitMatchesSelector;
+        }
+
+        if (!Element.prototype.closest) {
+          Element.prototype.closest = function (s) {
+            var el = this;
+
+            do {
+              if (el.matches(s)) return el;
+              el = el.parentElement || el.parentNode;
+            } while (el !== null && el.nodeType === 1);
+
+            return null;
+          };
+        }
       }
     </script>
   </body>
