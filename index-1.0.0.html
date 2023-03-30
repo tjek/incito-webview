@@ -120,7 +120,7 @@
               function (e) {
                 emit("viewClicked", getElementIdsAtPoint(e.clientX, e.clientY));
 
-                var offerEl = e.closest(
+                var offerEl = e.target.closest(
                   ".incito__view[data-role='offer'][data-id]"
                 );
                 if (offerEl) {
