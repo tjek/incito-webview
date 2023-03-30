@@ -47,7 +47,11 @@
             window.webkit.messageHandlers[handler]
         );
         if (hasIosHandler) {
-          window.webkit.messageHandlers[handler].postMessage(payload, payload2);
+           if (payload !== undefined && payload2 !== undefined) {
+               window.webkit.messageHandlers[handler].postMessage([payload, payload2]);
+           } else {
+               window.webkit.messageHandlers[handler].postMessage(payload);
+           }
         }
 
         var hasAndroidHandler = Boolean(
@@ -68,7 +72,9 @@
       - offerViewClicked(id: string)
       - offerViewLongClicked(id: string)
       - progress(progress: number, scrollY: number)
-      - init()
+      - initDone()
+       
+       Note, on iOS multiple parameters are sent in an array (as iOS callback handlers only support a single param, and android callback handlers dont support dictionaries/maps). The order of the values in this array _always_ matches the order described in this manifest.
       */
 
       // Creates and renders the Incito html specified by the json data passed in.
