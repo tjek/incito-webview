@@ -150,10 +150,8 @@
 
             // Listen for scroll events, and forward the progress to Android listeners.
             window.addEventListener("scroll", function () {
-              var progress =
-                (window.innerHeight + window.pageYOffset) /
-                document.body.scrollHeight;
-
+              var maxOffset = document.body.scrollHeight - window.innerHeight;
+              var progress = maxOffset > 0 ? window.pageYOffset / maxOffset : 0;
               emit("progress", progress, window.pageYOffset);
             });
 
