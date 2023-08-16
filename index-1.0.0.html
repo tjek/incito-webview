@@ -27,6 +27,27 @@
       body {
         margin: 0;
       }
+
+      #section-indicator {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity ease 0.5s;
+      }
+
+      #section-indicator-label {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0.5em;
+      }
     </style>
     <link
       href="https://js-sdk.tjek.com/sgn-sdk-4.x.x.min.css"
@@ -39,7 +60,18 @@
     ></script>
   </head>
   <body>
+    <div id="incito-container"></div>
+    <div id="section-indicator">
+      <div id="section-indicator-label"></div>
+    </div>
+
     <script>
+      var sectionIndicatorEl = document.getElementById("section-indicator");
+      var sectionIndicatorLabelEl = document.getElementById(
+        "section-indicator-label"
+      );
+      var incitoContainerEl = document.getElementById("incito-container");
+
       function emit(handler, payload, payload2) {
         var hasIosHandler = Boolean(
           window.webkit &&
@@ -47,24 +79,27 @@
             window.webkit.messageHandlers[handler]
         );
         if (hasIosHandler) {
-           if (payload !== undefined && payload2 !== undefined) {
-               window.webkit.messageHandlers[handler].postMessage([payload, payload2]);
-           } else {
-               window.webkit.messageHandlers[handler].postMessage(payload);
-           }
+          if (payload !== undefined && payload2 !== undefined) {
+            window.webkit.messageHandlers[handler].postMessage([
+              payload,
+              payload2,
+            ]);
+          } else {
+            window.webkit.messageHandlers[handler].postMessage(payload);
+          }
         }
 
         var hasAndroidHandler = Boolean(
           window.androidJSInterface && window.androidJSInterface[handler]
         );
         if (hasAndroidHandler) {
-            if (payload !== undefined && payload2 !== undefined) {
-                window.androidJSInterface[handler](payload, payload2);
-            } else if (payload !== undefined) {
-                window.androidJSInterface[handler](payload);
-            } else {
-                window.androidJSInterface[handler]();
-            }
+          if (payload !== undefined && payload2 !== undefined) {
+            window.androidJSInterface[handler](payload, payload2);
+          } else if (payload !== undefined) {
+            window.androidJSInterface[handler](payload);
+          } else {
+            window.androidJSInterface[handler]();
+          }
         }
       }
 
@@ -89,9 +124,20 @@
       window.init = function (data) {
         setTimeout(function () {
           var incito = new SGN.IncitoPublicationKit.Viewer.Incito(
-            document.body,
+            incitoContainerEl,
             { incito: data }
           );
+          var sectionIndicatorLabel;
+
+          if (
+            data &&
+            data.theme &&
+            Array.isArray(data.theme.font_family) &&
+            data.theme.font_family.length
+          ) {
+            sectionIndicatorEl.style.fontFamily =
+              data.theme.font_family.join(",");
+          }
 
           setTimeout(function () {
             incito.bind("sectionVisible", function (sectionData) {
@@ -100,6 +146,31 @@
                 sectionData.sectionId,
                 sectionData.sectionPosition
               );
+
+              if (
+                sectionData.sectionId &&
+                Array.isArray(data.table_of_contents)
+              ) {
+                var tocItemIndex = data.table_of_contents.findIndex(function (
+                  tocItem
+                ) {
+                  return tocItem.view_id === sectionData.sectionId;
+                });
+
+                if (tocItemIndex > -1) {
+                  var tocItem = data.table_of_contents[tocItemIndex];
+
+                  sectionIndicatorLabel =
+                    tocItemIndex +
+                    1 +
+                    "/" +
+                    data.table_of_contents.length +
+                    ": " +
+                    tocItem.title;
+                } else {
+                  sectionIndicatorLabel = null;
+                }
+              }
             });
             incito.bind("sectionHidden", function (sectionData) {
               emit(
@@ -152,7 +223,16 @@
             window.addEventListener("scroll", function () {
               var maxOffset = document.body.scrollHeight - window.innerHeight;
               var progress = maxOffset > 0 ? window.pageYOffset / maxOffset : 0;
+
               emit("progress", progress, window.pageYOffset);
+
+              if (window.pageYOffset < 100) {
+                sectionIndicatorEl.style.opacity = 0;
+                sectionIndicatorLabelEl.textContent = "";
+              } else if (sectionIndicatorLabel) {
+                sectionIndicatorLabelEl.textContent = sectionIndicatorLabel;
+                sectionIndicatorEl.style.opacity = 1;
+              }
             });
 
             emit("initDone");
