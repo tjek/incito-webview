@@ -179,6 +179,22 @@
           return absoluteBoundsOfElement(element);
         }
       }
+        
+      // Returns array of (non-null) id strings for all the elements at the specified point
+      // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
+      function getOfferElementIdsAtPoint(x, y) {
+        return document
+          .elementsFromPoint(x, y)
+          .filter(function(el) {
+              return el.getAttribute("data-role") === "offer";
+          })
+          .map(function (el) {
+              return el.getAttribute("data-id");
+          })
+          .filter(function (el) {
+            return el != null;
+          });
+       }
 
       // Returns array of (non-null) id strings for all the elements at the specified point
       // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
