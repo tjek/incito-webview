@@ -47,24 +47,27 @@
             window.webkit.messageHandlers[handler]
         );
         if (hasIosHandler) {
-           if (payload !== undefined && payload2 !== undefined) {
-               window.webkit.messageHandlers[handler].postMessage([payload, payload2]);
-           } else {
-               window.webkit.messageHandlers[handler].postMessage(payload);
-           }
+          if (payload !== undefined && payload2 !== undefined) {
+            window.webkit.messageHandlers[handler].postMessage([
+              payload,
+              payload2,
+            ]);
+          } else {
+            window.webkit.messageHandlers[handler].postMessage(payload);
+          }
         }
 
         var hasAndroidHandler = Boolean(
           window.androidJSInterface && window.androidJSInterface[handler]
         );
         if (hasAndroidHandler) {
-            if (payload !== undefined && payload2 !== undefined) {
-                window.androidJSInterface[handler](payload, payload2);
-            } else if (payload !== undefined) {
-                window.androidJSInterface[handler](payload);
-            } else {
-                window.androidJSInterface[handler]();
-            }
+          if (payload !== undefined && payload2 !== undefined) {
+            window.androidJSInterface[handler](payload, payload2);
+          } else if (payload !== undefined) {
+            window.androidJSInterface[handler](payload);
+          } else {
+            window.androidJSInterface[handler]();
+          }
         }
       }
 
@@ -120,9 +123,7 @@
               function (e) {
                 emit("viewClicked", getElementIdsAtPoint(e.clientX, e.clientY));
 
-                var offerEl = e.target.closest(
-                  ".incito__view[data-role='offer'][data-id]"
-                );
+                var offerEl = e.target.closest("[data-role='offer'][data-id]");
                 if (offerEl) {
                   emit("offerViewClicked", offerEl.dataset.id);
                 }
@@ -138,9 +139,7 @@
                   getElementIdsAtPoint(e.clientX, e.clientY)
                 );
 
-                var offerEl = e.target.closest(
-                  ".incito__view[data-role='offer'][data-id]"
-                );
+                var offerEl = e.target.closest("[data-role='offer'][data-id]");
                 if (offerEl) {
                   emit("offerViewLongClicked", offerEl.dataset.viewId);
                 }
@@ -179,22 +178,22 @@
           return absoluteBoundsOfElement(element);
         }
       }
-        
+
       // Returns array of (non-null) id strings for all the elements at the specified point
       // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
       function getOfferElementIdsAtPoint(x, y) {
         return document
           .elementsFromPoint(x, y)
-          .filter(function(el) {
-              return el.getAttribute("data-role") === "offer";
+          .filter(function (el) {
+            return el.getAttribute("data-role") === "offer";
           })
           .map(function (el) {
-              return el.getAttribute("data-id");
+            return el.getAttribute("data-id");
           })
           .filter(function (el) {
             return el != null;
           });
-       }
+      }
 
       // Returns array of (non-null) id strings for all the elements at the specified point
       // [!] FUNCTION SIGNATURE MUST NOT CHANGE - Used in production
@@ -213,9 +212,7 @@
 
       // internal function to retrieve the first incito__view element with the specified viewId.
       function incitoViewElementWithId(viewId) {
-        return document.querySelector(
-          ".incito__view[data-id='" + viewId + "']"
-        );
+        return document.querySelector("[data-id='" + viewId + "']");
       }
 
       // internal function to retrieve the absolute bounds (ignoring scroll offset etc) of the specified element.
