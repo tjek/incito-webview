@@ -27,6 +27,17 @@
       body {
         margin: 0;
       }
+
+      html:has([data-role="section-wrapper"]) {
+        scroll-snap-type: y proximity;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      [data-role="section-wrapper"] {
+        scroll-snap-align: center;
+        scroll-snap-stop: always;
+      }
     </style>
     <link
       href="https://js-sdk.tjek.com/sgn-sdk-4.x.x.min.css"
