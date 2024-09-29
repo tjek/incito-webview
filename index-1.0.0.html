@@ -134,7 +134,9 @@
               function (e) {
                 emit("viewClicked", getElementIdsAtPoint(e.clientX, e.clientY));
 
-                var offerEl = e.target.closest("[data-role='offer'][data-id]");
+                var offerEl = e.target.closest(
+                  ".incito__view[data-role='offer'][data-id]"
+                );
                 if (offerEl) {
                   emit("offerViewClicked", offerEl.dataset.id);
                 }
@@ -150,7 +152,9 @@
                   getElementIdsAtPoint(e.clientX, e.clientY)
                 );
 
-                var offerEl = e.target.closest("[data-role='offer'][data-id]");
+                var offerEl = e.target.closest(
+                  ".incito__view[data-role='offer'][data-id]"
+                );
                 if (offerEl) {
                   emit("offerViewLongClicked", offerEl.dataset.viewId);
                 }
@@ -223,7 +227,9 @@
 
       // internal function to retrieve the first incito__view element with the specified viewId.
       function incitoViewElementWithId(viewId) {
-        return document.querySelector("[data-id='" + viewId + "']");
+        return document.querySelector(
+          ".incito__view[data-id='" + viewId + "']"
+        );
       }
 
       // internal function to retrieve the absolute bounds (ignoring scroll offset etc) of the specified element.
