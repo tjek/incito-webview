@@ -28,13 +28,23 @@
         margin: 0;
       }
 
-      html:has([data-role="paged"]) {
+      html:has([data-role="paged-proximity"]) {
         scroll-snap-type: y proximity;
         overflow-y: auto;
         overflow-x: hidden;
       }
 
-      [data-role="paged"] [data-role="section"] {
+      html:has([data-role="paged-mandatory"]) {
+        scroll-snap-type: y mandatory;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      [data-role="paged-proximity"] [data-role="section"] {
+        scroll-snap-align: start;
+      }
+
+      [data-role="paged-mandatory"] [data-role="section"] {
         scroll-snap-align: start;
         scroll-snap-stop: always;
       }
