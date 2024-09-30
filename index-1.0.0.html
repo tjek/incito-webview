@@ -28,13 +28,13 @@
         margin: 0;
       }
 
-      html:has([data-role="section-wrapper"]) {
+      html:has([data-role="paged"]) {
         scroll-snap-type: y proximity;
         overflow-y: auto;
         overflow-x: hidden;
       }
 
-      [data-role="section-wrapper"] {
+      [data-role="paged"] [data-role="section"] {
         scroll-snap-align: center;
         scroll-snap-stop: always;
       }
