@@ -49,6 +49,10 @@
         scroll-snap-align: start;
         scroll-snap-stop: always;
       }
+
+      .zoomed-in {
+        scroll-snap-type: none !important;
+      }
     </style>
     <link
       href="https://js-sdk.tjek.com/sgn-sdk-4.x.x.min.css"
@@ -61,6 +65,17 @@
     ></script>
   </head>
   <body>
+    <script>
+      const updateScrollSnap = () => {
+        try {
+          const isZoomedIn = window.visualViewport.scale > 1;
+
+          document.documentElement.classList.toggle("zoomed-in", isZoomedIn);
+        } catch {}
+      };
+
+      window.visualViewport.addEventListener("resize", updateScrollSnap);
+    </script>
     <script>
       function emit(handler, payload, payload2) {
         var hasIosHandler = Boolean(
