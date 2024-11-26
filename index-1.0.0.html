@@ -66,15 +66,18 @@
   </head>
   <body>
     <script>
-      const updateScrollSnap = () => {
+      window.visualViewport.addEventListener("resize", () => {
         try {
-          const isZoomedIn = window.visualViewport.scale > 1;
+          const scale = Math.round(window.visualViewport.scale * 100) / 100;
+          const isZoomedIn = scale > 1;
 
-          document.documentElement.classList.toggle("zoomed-in", isZoomedIn);
+          if (isZoomedIn) {
+            document.documentElement.classList.add("zoomed-in");
+          } else {
+            document.documentElement.classList.remove("zoomed-in");
+          }
         } catch {}
-      };
-
-      window.visualViewport.addEventListener("resize", updateScrollSnap);
+      });
     </script>
     <script>
       function emit(handler, payload, payload2) {
